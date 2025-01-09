@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('posts', function (Blueprint $table) {
-            $table->id();
-            $table->string("Title");
-            $table->text("Description");
-            $table->string("Due Date");
-            $table->string("Status");
-            $table->timestamps();
+            $table->id(); // Primary key
+            $table->string('title'); // Title of the post
+            $table->text('description'); // Description
+            $table->date('due_date'); // Due date
+            $table->enum('status', ['pending', 'in-progress', 'completed'])->default('pending'); // Status
+            $table->timestamps(); // Created_at and Updated_at
         });
     }
 

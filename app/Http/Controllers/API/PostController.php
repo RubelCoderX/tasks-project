@@ -4,15 +4,19 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Post;
+use App\Http\Controllers\API\BaseController as BaseController;
 
-class PostController extends Controller
+class PostController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $data['posts'] = Post::all();
+        return $this->sendRespons('Posts retrieved successfully',$data);
     }
 
     /**
@@ -20,7 +24,30 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatePost = validator::make(
+            $request->all(),
+            [
+                'title' => 'required|string|max:255',
+                'description' => 'required',
+                'due_date' => 'required|date',
+                'status' => 'required|in:pending,in-progress,completed',
+            ]
+            );
+            if($validatePost->fails()){
+               return this.sendError('Validation Error',$validatePost->errors()->all());
+            }
+
+            $post = Post::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'due_date' => $request->due_date,
+                'status' => $request->status,
+            ]);
+
+            
+
+            return $this->sendRespons('Post created successfully',$post);
+
     }
 
     /**
@@ -28,7 +55,17 @@ class PostController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $data['post'] = Post::select(
+            'id',
+            'title',
+            'description',
+            'due_date',
+            'status',
+            
+        )->where(['id'=> $id])->get();
+
+        return $this->sendRespons('Single Post retrieved successfully',$data);
+
     }
 
     /**
@@ -36,7 +73,27 @@ class PostController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validatePost = validator::make(
+            $request->all(),
+            [
+                'title' => 'required|string|max:255',
+                'description' => 'required',
+                'due_date' => 'required|date',
+                'status' => 'required|in:pending,in-progress,completed',
+            ]
+            );
+            if($validatePost->fails()){
+               return this.sendError('Validation Error',$validatePost->errors()->all());
+            }
+
+            $post = Post::where(['id' =>$id])->update([
+                'title' => $request->title,
+                'description' => $request->description,
+                'due_date' => $request->due_date,
+                'status' => $request->status,
+            ]);
+
+           return $this->sendRespons('Post updated successfully',$post);
     }
 
     /**
@@ -44,6 +101,8 @@ class PostController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $post = Post::where('id', $id)->delete();
+
+        return $this->sendRespons('Post deleted successfully',$post);
     }
 }
