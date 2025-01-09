@@ -16,7 +16,7 @@ class PostController extends BaseController
     public function index()
     {
         $data['posts'] = Post::all();
-        return $this->sendRespons('Posts retrieved successfully',$data);
+        return $this->sendRespons('Posts retrieved successfully', $data);
     }
 
     /**
@@ -24,7 +24,7 @@ class PostController extends BaseController
      */
     public function store(Request $request)
     {
-        $validatePost = validator::make(
+        $validatePost = Validator::make(
             $request->all(),
             [
                 'title' => 'required|string|max:255',
@@ -32,22 +32,20 @@ class PostController extends BaseController
                 'due_date' => 'required|date',
                 'status' => 'required|in:pending,in-progress,completed',
             ]
-            );
-            if($validatePost->fails()){
-               return this.sendError('Validation Error',$validatePost->errors()->all());
-            }
+        );
 
-            $post = Post::create([
-                'title' => $request->title,
-                'description' => $request->description,
-                'due_date' => $request->due_date,
-                'status' => $request->status,
-            ]);
+        if ($validatePost->fails()) {
+            return $this->sendError('Validation Error', $validatePost->errors()->all());
+        }
 
-            
+        $post = Post::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'due_date' => $request->due_date,
+            'status' => $request->status,
+        ]);
 
-            return $this->sendRespons('Post created successfully',$post);
-
+        return $this->sendRespons('Post created successfully', $post);
     }
 
     /**
@@ -55,17 +53,13 @@ class PostController extends BaseController
      */
     public function show(string $id)
     {
-        $data['post'] = Post::select(
-            'id',
-            'title',
-            'description',
-            'due_date',
-            'status',
-            
-        )->where(['id'=> $id])->get();
+        $post = Post::find($id);
 
-        return $this->sendRespons('Single Post retrieved successfully',$data);
+        if (!$post) {
+            return $this->sendError('Post not found');
+        }
 
+        return $this->sendRespons('Single Post retrieved successfully', ['post' => $post]);
     }
 
     /**
@@ -73,7 +67,7 @@ class PostController extends BaseController
      */
     public function update(Request $request, string $id)
     {
-        $validatePost = validator::make(
+        $validatePost = Validator::make(
             $request->all(),
             [
                 'title' => 'required|string|max:255',
@@ -81,19 +75,26 @@ class PostController extends BaseController
                 'due_date' => 'required|date',
                 'status' => 'required|in:pending,in-progress,completed',
             ]
-            );
-            if($validatePost->fails()){
-               return this.sendError('Validation Error',$validatePost->errors()->all());
-            }
+        );
 
-            $post = Post::where(['id' =>$id])->update([
-                'title' => $request->title,
-                'description' => $request->description,
-                'due_date' => $request->due_date,
-                'status' => $request->status,
-            ]);
+        if ($validatePost->fails()) {
+            return $this->sendError('Validation Error', $validatePost->errors()->all());
+        }
 
-           return $this->sendRespons('Post updated successfully',$post);
+        $post = Post::find($id);
+
+        if (!$post) {
+            return $this->sendError('Post not found');
+        }
+
+        $post->update([
+            'title' => $request->title,
+            'description' => $request->description,
+            'due_date' => $request->due_date,
+            'status' => $request->status,
+        ]);
+
+        return $this->sendRespons('Post updated successfully', $post);
     }
 
     /**
@@ -101,8 +102,15 @@ class PostController extends BaseController
      */
     public function destroy(string $id)
     {
-        $post = Post::where('id', $id)->delete();
+        $post = Post::find($id);
 
-        return $this->sendRespons('Post deleted successfully',$post);
+        if (!$post) {
+            return $this->sendError('Post not found');
+        }
+
+        $post->delete();
+
+        return $this->sendRespons('Post deleted successfully', []);
     }
 }
+
